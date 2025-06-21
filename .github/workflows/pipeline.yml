@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 env:
   MAVEN_OPTS: "-Dmaven.repo.local=./.m2"
   code_cache: ".m2"
@@ -124,3 +125,12 @@ jobs:
         run: |
           war_file=$(find ./target -name "*.war" | head -n 1)
           cp "$war_file" /usr/local/tomcat/webapps/ConnectFour.war
+
+  stop_test:
+    name: Stop Test Deployment
+    runs-on: self-hosted
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Stop Test App on Tomcat
+        run: |
+          rm -f /usr/local/tomcat/webapps/ConnectFour.war
