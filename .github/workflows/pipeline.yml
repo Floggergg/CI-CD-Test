@@ -120,7 +120,9 @@ jobs:
         with:
           name: war
           path: ./target
+      - name: Unzip WAR artifact
+        run: unzip -o ./target/war.zip -d ./target
       - name: Deploy WAR to Tomcat
-        run: ls ./target
-          war_file=$(ls target/*.war)
+        run: |
+          war_file=$(find ./target -name "*.war" | head -n 1)
           cp "$war_file" /usr/local/tomcat/webapps/ConnectFour.war
