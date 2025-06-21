@@ -120,8 +120,6 @@ jobs:
         with:
           name: war
           path: ./target
-      - name: Unzip WAR artifact
-        run: unzip -o ./target/war.zip -d ./target
       - name: Deploy WAR to Tomcat
         run: |
           war_file=$(find ./target -name "*.war" | head -n 1)
