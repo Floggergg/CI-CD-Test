@@ -12,6 +12,7 @@ jobs:
   build:
     runs-on: self-hosted
     steps:
+      - uses: actions/checkout@v4
       - name: Compile Project
         run: mvn compile
       - uses: actions/upload-artifact@v4
