@@ -119,5 +119,7 @@ jobs:
       - uses: actions/download-artifact@v4.3.0
         with:
           name: war
-      - name: Integrate into webapp
-        run: cp /home/github-runner/actions-runner/_work/spw4_github_runner_testing/spw4_github_runner_testing/ConnectFour.war /usr/local/tomcat/webapps
+          path: ./target
+      - name: Deploy WAR to Tomcat
+        run: war_file=$(ls target/*.war | head -n 1)
+          cp "$war_file" /usr/local/tomcat/webapps/ConnectFour.war
