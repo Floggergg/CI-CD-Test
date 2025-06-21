@@ -19,3 +19,5 @@ Effort in hours: 3
 ### Task 1.c
 
 ![GitHubPipelineDoku](GitHubPipelineDoku.png)
+
+![ConnectFourWorksGitHub](ConnectFourWorks_GitHub.png)
