@@ -121,5 +121,6 @@ jobs:
           name: war
           path: ./target
       - name: Deploy WAR to Tomcat
-        run: war_file=$(ls target/*.war | head -n 1)
+        run: ls ./target
+          war_file=$(ls target/*.war)
           cp "$war_file" /usr/local/tomcat/webapps/ConnectFour.war
