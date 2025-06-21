@@ -71,8 +71,11 @@ jobs:
         with:
           name: build-artifact
           path: ./target
-      - name: Check if target/classes exists
-        run: ls -la target/classes
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
       - name: SonarQube Scan
         run: |
           mvn sonar:sonar \
@@ -92,6 +95,11 @@ jobs:
           path: $code_cache
           key: build-cache-${{ github.run_id }}
           restore-keys: build-cache-
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
       - name: Package WAR
         run: mvn package
       - name: Upload WAR Artifact
