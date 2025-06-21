@@ -1,0 +1,104 @@
+name: Pipeline with GitHub Actions
+
+on:
+  push:
+    branches:
+      - main
+env:
+  MAVEN_OPTS: "-Dmaven.repo.local=./.m2"
+  code_cache: ".m2"
+
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - name: Compile Project
+        run: mvn compile
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-artifact
+          path: target
+      - uses: actions/cache@v4
+        with:
+          path: $code_cache
+          key: build-cache-${{ github.run_id }}
+          restore-keys: build-cache-
+
+  test:
+    runs-on: self-hosted
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore cache
+        uses: actions/cache@v4
+        with:
+          path: $code_cache
+          key: build-cache-${{ github.run_id }}
+          restore-keys: build-cache-
+      - name: Run Tests
+        run: mvn test
+      - name: Upload Tests
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: |
+            target/surefire-reports/
+            target/site/jacoco/
+
+  analyze:
+    runs-on: self-hosted
+    needs: [build, test]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore cache
+        uses: actions/cache@v4
+        with:
+          path: $code_cache
+          key: build-cache-${{ github.run_id }}
+          restore-keys: build-cache-
+      - uses: actions/download-artifact@v4.3.0
+        with:
+          name: build-artifact
+          path: ./target
+      - name: Check if target/classes exists
+        run: ls -la target/classes
+      - name: SonarQube Scan
+        run: |
+          mvn sonar:sonar \
+            -Dsonar.projectKey=ConnectFour \
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.qualitygate.wait=true \
+            -Dsonar.java.binaries=target/classes
+  package:
+    runs-on: self-hosted
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore cache
+        uses: actions/cache@v4
+        with:
+          path: $code_cache
+          key: build-cache-${{ github.run_id }}
+          restore-keys: build-cache-
+      - name: Package WAR
+        run: mvn package
+      - name: Upload WAR Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: war
+          path: target/*.war
+
+  deploy_test:
+    runs-on: self-hosted
+    needs: package
+    environment:
+      name: website_test
+      url: http://localhost:8081/ConnectFour
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4.3.0
+        with:
+          name: war
+      - name: Integrate into webapp
+        run: cp /home/github-runner/actions-runner/_work/spw4_github_runner_testing/spw4_github_runner_testing/ConnectFour.war /usr/local/tomcat/webapps
